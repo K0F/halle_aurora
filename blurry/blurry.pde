@@ -8,6 +8,7 @@
  *        */
 
 PShader blur;
+PShader nois;
 PGraphics src;
 PGraphics pass1, pass2;
 
@@ -21,6 +22,8 @@ void setup() {
   blur = loadShader("frag.glsl");
   blur.set("blurSize", 10);
   blur.set("sigma", 5.0f);  
+
+  nois = loadShader("nois.glsl");
 
   src = createGraphics(width, height, P2D); 
 
@@ -61,6 +64,9 @@ float sigma = (noise(frameCount/30.0)*50);
   pass2.endDraw();    
 
   image(pass2, ((noise(frameCount/9.0,0)-0.5)*3.0), ((noise(0,frameCount/9.0)-0.5)*3.0));   
+
+  nois.set("ammount",(noise(frameCount/20.0)));
+  shader(nois);
 }
 
 void keyPressed() {
