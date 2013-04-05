@@ -1,2 +1,4 @@
-halle_aurora
+Code-name Aurora (Halle)
 ============
+
+Audio-reactive installation.
