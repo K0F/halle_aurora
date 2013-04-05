@@ -8,7 +8,7 @@ float rand(vec2 co){
 void main(){
 
   float rnd = rand(gl_FragCoord.xy*time);
-  gl_FragColor=vec4(vec3(rnd,rnd,rnd),alpha);
+  gl_FragColor = vec4(vec3(rnd,rnd,rnd),alpha);
 }
 
 
