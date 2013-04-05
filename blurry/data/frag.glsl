@@ -5,7 +5,7 @@
 precision mediump float;
 precision mediump int;
 #endif
-
+uniform sampler2D noisePermTexture;
 uniform sampler2D textureSampler;
 
 // The inverse of the texture dimensions along X and Y
@@ -53,5 +53,5 @@ void main() {
     incrementalGaussian.xy *= incrementalGaussian.yz;
   }
 
-  gl_FragColor = avgValue / coefficientSum;
+  gl_FragColor = (avgValue) / coefficientSum;
 }

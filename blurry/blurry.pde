@@ -1,23 +1,47 @@
 /**
- *   Separate Blur Shader
- *    
- *   This blur shader works by applying two successive passes, one horizontal
- *   and the other vertical.
- *      
- *   Press the mouse to switch between the custom and default shader.
- *        */
+ *   Halle interactive exhibition
+ *   by kof 2013 
+ */
+
+import ddf.minim.*;
+
+Minim minim;
+AudioInput in;
+
+
+float FADEOUT = 200.0;
+
+float BSIZE,SIGMA,ALPHA;
+float maxval,lmaxval;
+
+float TRESHOLD = 0.02;
+float SENSITIVITY = 2.0;
+
+boolean peaks = false;
 
 PShader blur;
 PShader nois;
 PGraphics src;
 PGraphics pass1, pass2;
 
-PImage img;
+PImage img[];
+int slide = 0;
 
 void setup() {
-  size(1024, 768, P2D);
 
-  img = loadImage("1947.jpg");
+  size(1280,720, P2D);
+
+  minim = new Minim(this);
+  in = minim.getLineIn(Minim.STEREO, 256);
+
+  in.mute();
+
+  frameRate(50);
+
+  img = new PImage[27];
+  for(int i = 0 ; i < img.length;i++){
+    img[i] = loadImage(nf(i,2)+".jpg");
+  }
 
   blur = loadShader("frag.glsl");
   blur.set("blurSize", 10);
@@ -33,25 +57,73 @@ void setup() {
   pass2 = createGraphics(width, height, P2D);
   pass2.noSmooth();
 
-  
-  src.beginDraw();
-  src.background(255);
-  src.imageMode(CENTER);
-  src.image(img,width/2,height/2,img.width/3,img.height/3);
-  src.endDraw();
 
+  src.beginDraw();
+  //  src.background(255);
+  src.endDraw();
+  refresh();
+
+  BSIZE = SIGMA = ALPHA = 0;
+}
+
+void refresh(){
+
+  src.beginDraw();
+  //src.imageMode(CENTER);
+  src.image(img[slide],0,0,width,height);
+  src.noTint();
+  src.endDraw();
 }
 
 void draw() {
 
-int am = (int)(noise(frameCount/30.0)*100);
-float sigma = (noise(frameCount/30.0)*50);
+  if(frameCount%500==0)
+    forward();
+
+  background(255);
+
+  refresh();
+
+
+  maxval = maxval;
+  maxval = 0;
+  for(int i = 0; i < in.bufferSize() - 1; i++)
+  {
+    maxval = max(maxval,(in.left.get(i)+in.right.get(i))*SENSITIVITY);
+  }
+
+  if((maxval*50.0)>BSIZE){
+    BSIZE += ((maxval*50.0)-BSIZE)/3.0;
+    SIGMA += ((maxval*25.0)-SIGMA)/3.0;
+    ALPHA += (constrain(maxval/2.0,0,1)-ALPHA)/3.0;
+  }else{
+    BSIZE += ((maxval*50.0)-BSIZE)/FADEOUT;
+    SIGMA += ((maxval*25.0)-SIGMA)/FADEOUT;
+    ALPHA += (constrain(maxval/2.0,0,1)-ALPHA)/FADEOUT;
+
+  }
+
+
+
+
+  ///////
+  int am = (int)BSIZE;//(int)(noise(frameCount/30.0)*10);
+  float sigma = SIGMA;//(noise(frameCount/30.0)*5);
+  float time = frameCount;
+  float alpha = ALPHA;//(noise(frameCount/30.0))/4.0; 
+  ////
 
   blur.set("blurSize", am);
   blur.set("sigma", sigma);  
+  nois.set("time",frameCount);
+  nois.set("alpha",alpha);
+
+
+
   // Applying the blur shader along the vertical direction   
   blur.set("horizontalPass", 0);
   pass1.beginDraw();            
+  pass1.noTint();
   pass1.shader(blur);  
   pass1.image(src, 0, 0);
   pass1.endDraw();
@@ -60,27 +132,40 @@ float sigma = (noise(frameCount/30.0)*50);
   blur.set("horizontalPass", 1);
   pass2.beginDraw();            
   pass2.shader(blur);  
+  pass2.tint(255,10);
   pass2.image(pass1, 0, 0);
   pass2.endDraw();    
 
-  image(pass2, ((noise(frameCount/9.0,0)-0.5)*3.0), ((noise(0,frameCount/9.0)-0.5)*3.0));   
+  noTint();
+  image(pass2, ((noise(frameCount/9.0,0)-0.5)*3.0), ((noise(0,frameCount/9.0)-0.5)*3.0));
 
-  nois.set("ammount",(noise(frameCount/20.0)));
-  shader(nois);
+  if(peaks){
+    println(maxval);
+    resetShader();
+    stroke(#ffcc00);
+    for(int i = 0; i < in.bufferSize() - 1; i++)
+    {
+      line(i, 50 + in.left.get(i)*50, i+1, 50 + in.left.get(i+1)*50);
+      line(i, 150 + in.right.get(i)*50, i+1, 150 + in.right.get(i+1)*50);
+    }   
+  }
+
+  if(ALPHA>0.01){
+    shader(nois);
+    rect(0,0,width,height);
+  }
 }
 
-void keyPressed() {
-  if (key == '9') {
-    blur.set("blurSize", 9);
-    blur.set("sigma", 5.0);
-  } else if (key == '7') {
-    blur.set("blurSize", 7);
-    blur.set("sigma", 3.0);
-  } else if (key == '5') {
-    blur.set("blurSize", 5);
-    blur.set("sigma", 2.0);  
-  } else if (key == '3') {
-    blur.set("blurSize", 5);
-    blur.set("sigma", 1.0);  
-  }  
-} 
+void forward() {
+  slide++;
+  slide=slide%img.length;
+}
+
+void stop()
+{
+
+  in.close();
+  minim.stop();
+
+  super.stop();
+}
