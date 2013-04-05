@@ -100,7 +100,6 @@ void draw() {
     BSIZE += ((maxval*50.0)-BSIZE)/FADEOUT;
     SIGMA += ((maxval*25.0)-SIGMA)/FADEOUT;
     ALPHA += (constrain(maxval/2.0,0,1)-ALPHA)/FADEOUT;
-
   }
 
 
