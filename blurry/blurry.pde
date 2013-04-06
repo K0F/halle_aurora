@@ -15,7 +15,7 @@ float BSIZE,SIGMA,ALPHA;
 float maxval,lmaxval;
 
 float TRESHOLD = 0.02;
-float SENSITIVITY = 3.0;
+float SENSITIVITY = 4.0;
 
 boolean peaks = false;
 
@@ -37,6 +37,7 @@ void setup() {
   in.mute();
 
   frameRate(50);
+  noCursor();
 
   img = new PImage[27];
   for(int i = 0 ; i < img.length;i++){
@@ -92,9 +93,9 @@ void draw() {
   }
 
   if((maxval*50.0)>BSIZE){
-    BSIZE += (constrain(maxval*50.0,0,50)-BSIZE)/3.0;
-    SIGMA += (constrain(maxval*25.0,0,25)-SIGMA)/3.0;
-    ALPHA += (constrain(maxval/2.0,0,1)-ALPHA)/3.0;
+    BSIZE += (constrain(maxval*50.0,0,50)-BSIZE)/1.5;
+    SIGMA += (constrain(maxval*25.0,0,25)-SIGMA)/1.5;
+    ALPHA += (constrain(maxval/2.0,0,1)-ALPHA)/1.5;
   }else{
     BSIZE += ((maxval*50.0)-BSIZE)/FADEOUT;
     SIGMA += ((maxval*25.0)-SIGMA)/(FADEOUT*1.1);
